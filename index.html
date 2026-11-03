@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thị trấn AI</title>
+<style>
+  body { margin: 0; height: 100vh; display: grid; place-items: center; background: #eaf4f1; color: #2d2533;
+         font-family: 'Be Vietnam Pro', system-ui, sans-serif; text-align: center; }
+</style>
+</head>
+<body>
+<p id="msg">🏰 Đang mở thị trấn…</p>
+<script>
+// Trang mở Thị trấn AI (bản online). Giao diện + số liệu lấy từ Google Apps Script; mã xem nằm sau dấu # của link
+// (không lưu trong kho này). Đi đường này thì không dính lỗi "không thể mở tệp" khi trình duyệt đăng nhập nhiều
+// tài khoản Google, vì yêu cầu gửi tới Google không kèm tài khoản nào.
+(async () => {
+  const EXEC = 'https://script.google.com/macros/s/AKfycbwvscvGIrhB4slcUvBkTwmFKi5vzXHQ1HcB0fgCoe8RMRHObjxk3KPsu0TzTj2S9og/exec';
+  const msg = document.getElementById('msg');
+  const xem = decodeURIComponent(location.hash.slice(1)) || new URLSearchParams(location.search).get('xem') || '';
+  if (!xem) { msg.textContent = '🔒 Bạn cần link xem do chủ thị trấn gửi để vào.'; return; }
+  try {
+    const r = await fetch(`${EXEC}?xem=${encodeURIComponent(xem)}&f=tep&ten=giao_dien.html`);
+    const b64 = (await r.text()).trim();
+    if (!b64) throw new Error('trống');
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const html = new TextDecoder().decode(bytes)
+      .replace(/<\?!=\s*JSON\.stringify\(url\)\s*\?>/, JSON.stringify(EXEC))
+      .replace(/<\?!=\s*JSON\.stringify\(xem\)\s*\?>/, JSON.stringify(xem));
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (e) {
+    msg.textContent = '🔒 Không mở được thị trấn: link xem sai, mã đã đổi, hoặc mạng chập chờn — thử tải lại trang.';
+  }
+})();
+</script>
+</body>
+</html>
